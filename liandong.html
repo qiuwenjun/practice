@@ -1,0 +1,271 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>省市联动</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            box-sizing: border-box;
+        }
+        .linkage{
+            display: flex;
+            justify-content: space-around
+        }
+        .linkage li{
+            width:120px;
+        }
+        .linkage li select{
+            display: block;
+            width: 100%;
+            font-size: 14px;
+            padding: 4px 0
+        }
+        .linkages{
+            margin-top: 50px
+        }
+        .linkages div:first-child{
+            width: 100%
+        }
+        .linkages div{
+            display: flex;
+        }
+        .linkages div li{
+            width: 120px;
+            margin: 0 89px
+        }
+        .linkages div select{
+            display: block;
+            width: 100%;
+            font-size: 14px;
+            padding: 4px 0
+        }
+    </style>
+</head>
+<body>
+    <div class="box"></div>
+
+</body>
+</html>
+<script src="vue.js"></script>
+<script src="city.js"></script>
+<script>
+    class linkage{
+        constructor(el,data,defaults){
+            /*
+               el: 插入的元素对象,
+               data:渲染的数据,
+               defaults:默认渲染出来的地址
+            */
+            if(!arguments.length) return ;
+            if(Object.prototype.toString.call(el)==='[object String]'){
+                this.el=document.querySelector(el);
+            }else{
+                this.el=document.body;
+            }
+            if(Object.prototype.toString.call(data)==='[object Object]'&&(Object.prototype.toString.call(defaults)==='[object Array]'||Object.prototype.toString.call(defaults)==='[object Undefined]')) {
+                this.data=data;
+                if(Object.prototype.toString.call(defaults)==='[object Array]'){
+                    this.defaults=defaults;
+                }else{
+                    this.defaults=0;
+                }
+            }else if(Object.prototype.toString.call(el)==='[object Object]'&&(Object.prototype.toString.call(data)==='[object Array]'||Object.prototype.toString.call(data)==='[object Undefined]')){
+                this.data=el;
+                if(Object.prototype.toString.call(data)==='[object Array]'){
+                    this.defaults=data;
+                }else{
+                    this.defaults=0;
+                }
+            }else{
+                return ""
+            }
+            
+            this.iUl=document.createElement("ul");
+            this.iUl.className="linkage";
+            this.init(this.data);
+        }
+        init(data,index){
+            this.aLi=document.createDocumentFragment();              //创建文档碎片
+            this.createElement(data,index);     
+            this.iUl.appendChild(this.aLi);
+            if(!this.iUl.offsetWidth)  this.el.appendChild(this.iUl);
+            this.aSelect=Array.from(this.iUl.querySelectorAll("select"));
+            this.addEvent();
+        }
+        createElement(data,index){           //第一个参数是数据，第二个参数是层级
+            // console.log(data,index)
+            index=index===undefined?0:index;
+            let iLi=document.createElement("li");
+            let iSelet=document.createElement("select");
+            iLi.appendChild(iSelet);
+            iLi.id=index;
+            iSelet.dataset.index=index;
+            let indexs=this.defaults;             //默认开头是选中第一个
+            if(Object.prototype.toString.call(data)==='[object Object]'){
+                for(let attr in data){
+                    let oP=document.createElement("option");
+                    oP.innerText=attr;
+                    oP.dataset.city=attr;
+                    if(indexs&&indexs[index]==attr){           //是数组的话
+                        iSelet.dataset.city=indexs[index];
+                        oP.selected="selected";
+                        this.createElement(data[attr],++index);
+                    }else if(indexs==0){
+                        iSelet.dataset.city=attr;
+                        this.createElement(data[attr],++index);
+                        indexs++
+                    }
+                    iSelet.appendChild(oP);
+                }
+            }else{
+                for(let i=0;i<data.length;i++){
+                    let oP=document.createElement("option");
+                    oP.innerText=data[i];
+                    oP.dataset.city=data[i];
+                    if(indexs&&indexs[index]==data[i]){           //是数组的话
+                        iSelet.dataset.city=indexs[index];
+                        oP.selected="selected";
+                    }else if(indexs==0){
+                        iSelet.dataset.city=data[i];;
+                        indexs++
+                    }
+                    iSelet.appendChild(oP);
+                }
+            }
+            iLi.appendChild(iSelet);
+            if(this.aLi.firstElementChild){
+                this.aLi.insertBefore(iLi,this.aLi.firstElementChild);
+            }else{
+                this.aLi.appendChild(iLi);
+            }
+        }
+        addEvent(){
+            this.aSelect.forEach(res=>{
+                res.onchange=(ev)=>{
+                 let city=res.children[res.selectedIndex].dataset.city;
+                 res.dataset.city=city;
+                 let getData=data;
+                 for(let i=0;i<res.dataset.index;i++){
+                    getData=getData[this.aSelect[i].dataset.city];
+                 }
+                 if(Object.prototype.toString.call(getData)==='[object Object]'){
+                    let el=this.aSelect.filter((item,index)=>index>res.dataset.index);
+                    el.forEach(res=>{
+                        res.parentNode.remove();
+                    });
+                    getData=getData[city];
+                    this.defaults=0;
+                    this.init(getData,Number(res.dataset.index)+1)
+                 }
+               }
+            });
+        }
+    };
+    let linkage1=new linkage(".box",data);
+    let linkage2=new linkage(data);
+    let linkage3=new linkage(data,['安徽','宣城','泾县']);
+    let iBox=document.createElement("div");
+    iBox.className="app";
+    iBox.innerHTML=`
+        <ul class="linkages">
+            <create :data="data" :index="index" :city="city"></create>    
+        </ul>
+    `
+    document.body.appendChild(iBox);
+    let app=new Vue({
+        el:'.app',
+        data:{
+            city:["安徽","宣城",'泾县'],                               //默认打开是哪个城市,如果没有默认，请填写0，或者不配置参数
+            data,                          //数据
+            index:0,                    //当前为第几层
+            a:2
+        },
+        components:{
+            create:{
+                name:'create',
+                props:{
+                    city:{
+                        type:[Number,Array],
+                        default(){
+                            return 0
+                        }
+                    },
+                    data:{
+                        type:[Array,Object],
+                        default(){
+                            return undefined;
+                        }
+                    },
+                    index:{
+                        type:Number,
+                        default(){
+                            return undefined
+                        }
+                    }
+                },
+                data(){
+                    return {
+                        citys:this.city,
+                        getCity:this.getCityFn(),
+                        isFlag:Object.prototype.toString.call(this.data)==="[object Array]"?false:true
+                    }
+                },
+                watch:{
+                    data(){
+                        this.citys=this.city;
+                        this.getCity=this.getCityFn();
+                    }
+                },
+                computed:{
+                    getCityArr(){
+                        if(Object.prototype.toString.call(this.data)==="[object Array]") return false;
+                        for(let attr in this.data){
+                           if(attr==this.getCity){
+                               return this.data[attr];
+                           }
+                        }
+                    }
+                },
+                methods:{
+                    getCityFn(){
+                        if(Object.prototype.toString.call(this.city)==='[object Array]'){
+                            getCity=this.city[this.index]
+                        }else{
+                            if(Object.prototype.toString.call(this.data)==="[object Object]"){
+                                for(let attr in this.data){
+                                    getCity=attr;
+                                    break;
+                                }
+                            }else{
+                                getCity=this.data[0]
+                            }
+                        }
+                        return getCity
+                    },
+                    changed(){
+                        this.citys=0;
+                    }
+                },
+                template:`
+                    <div class="" v-if="data">
+                        <li>
+                            <!--对象-->
+                            <select v-if="isFlag" v-model="getCity" @change="changed" :data-city="getCity" :data-index="index">
+                                <option v-for="key,value,index in data"  :data-city="value" >{{value}}</option>    
+                            </select>  
+                            <!--数组-->
+                            <select v-else v-model="getCity" @change="changed" :data-city="getCity" :data-index="index">
+                                <option v-for="item,index in data"  :data-city="item" >{{item}}</option>    
+                            </select>  
+                        </li>
+                        <create v-if="getCityArr" :data="getCityArr" :index="index+1" :city="citys"></create>
+                    </div>
+                `
+            }
+        }
+    })
+</script>
