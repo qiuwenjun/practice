@@ -192,11 +192,13 @@
             static all(Arrays){
                 return new Promise((resolve,reject)=>{
                     let arr=[];
+                    let index=0;
                     for(let i=0;i<Arrays.length;i++){
                         arr.push('');
                         Arrays[i].then(res=>{
                             arr.splice(i,1,res);
-                            if(arr.length===Arrays.length) resolve(arr);
+                            index++;
+                            if(index===Arrays.length) resolve(arr);
                         },res=>{    
                             reject(res);
                         })
@@ -248,5 +250,16 @@
         })
         console.log(p);
         // console.dir(Promise)
+        Promise.race([1,2,3].map((item,index)=>{
+            return new Promise((resolve,reject)=>{
+                setTimeout(res=>{
+                    index?resolve(item):reject(item)
+                },item*1000);
+            })
+        })).then(res=>{
+            console.log(res)
+        },res=>{
+            console.log(res)
+        })
     })();
 </script>
