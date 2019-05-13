@@ -32,3 +32,40 @@
     arr.sort((a,b)=>{
       return b-a;
     })
+//数组降维,降维打击
+Array.prototype.flat = function (index = 1) {
+  return flat(this);
+  function flat(data, l = 0) {
+    let arr = [];
+    for (let i = 0; i < data.length; i++) {
+      if (Array.isArray(data[i]) && l < index) {
+        arr = arr.concat(flat(data[i], l + 1));
+      } else {
+        arr.push(data[i]);
+      }
+    }
+    return arr;
+  };
+};
+//派生在降维
+Array.prototype.flatMap = function (callBack, This, index = 1) {
+  if (!(callBack instanceof Function)) {
+    return new TypeError('请传回调函数!!!');
+  }
+  let arr = [];
+  for (let i = 0; i < this.length; i++) {
+    arr.push(callBack.call(This, this[i], i, this));
+  };
+  return flat(arr);
+  function flat(data, l = 0) {
+    let arr = [];
+    for (let i = 0; i < data.length; i++) {
+      if (Array.isArray(data[i]) && l < index) {
+        arr = arr.concat(flat(data[i], l + 1))
+      } else {
+        arr.push(data[i]);
+      }
+    }
+    return arr;
+  }
+}
