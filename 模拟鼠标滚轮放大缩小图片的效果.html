@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .box{
+      width:450px;
+      height: 300px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    .image{
+      width:100%;
+      height: 100%;
+      position: absolute;
+    }
+    .Preview{
+      width:150px;
+      height:100px;
+      position:relative;
+      margin:20px auto;
+      background: url(file:///C:/Users/Administrator/Desktop/IDR_THEME_NTP_BACKGROUND.png) no-repeat center center;
+      background-size: 100% 100%;
+    }
+    .mask{
+      position: absolute;
+      left:0;
+      right:0;
+      top:0;
+      bottom:0;
+      background: rgba(0,0,0,0.4);
+    }
+    .clip{
+      width:40px;
+      height:20px;
+      overflow: hidden;
+      border: 1px solid #fff;
+      position: relative;
+      z-index:9;
+    }
+    .clip img{
+      width:150px;
+      height:100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <img class="image" src="file:///C:/Users/Administrator/Desktop/IDR_THEME_NTP_BACKGROUND.png" />
+  </div>
+  <div class="Preview">
+    <div class="mask"></div>
+    <div class="clip">
+      <img src="file:///C:/Users/Administrator/Desktop/IDR_THEME_NTP_BACKGROUND.png" />
+    </div>
+  </div>
+</body>
+</html>
+<script>
+  class iBoxDrag{
+    constructor(el){
+      this.el=document.querySelector(el);
+      if(!this.el) return new Error('元素不存在');
+      this.image=this.el.querySelector('.image');
+      this.init();
+    }
+    init(){
+      this.iFlag=window.navigator.userAgent.toLowerCase().includes('firefox');
+      this.event= this.iFlag?'DOMMouseScroll':'mousewheel';
+      this.eventKeys= this.iFlag?'detail':'wheelDelta';
+      this.initX=this.initY=0;
+      this.iLeft = this.iTop = 0;
+      this.el.addEventListener(this.event,e=>{
+        e = e || window.event;
+        if(this.initX!==e.clientX&& this.initY !== e.clientY) {
+          this.initX=e.clientX;
+          this.initY=e.clientY;
+          this.getData(e);
+        }
+        if(this.iFlag){
+          if(e[this.eventKeys]<0){
+            this.zoom(e);
+          }else{
+            this.zommOut(e);
+          }
+        }else{
+          if (e[this.eventKeys] > 0) {
+            this.zoom(e);
+          } else {
+            this.zommOut(e);
+          }
+        }
+        e.preventDefault();
+      },false);
+      this.el.addEventListener('mousedown',this.downImage.bind(this),false);
+    }
+    downImage(e){
+      this.iStartX=e.clientX;
+      this.iStartY=e.clientY;
+      this.el.style.cursor='all-scroll';
+      this.moveImage=this.moveImage.bind(this);
+      this.upImage=this.upImage.bind(this);
+      this.el.addEventListener('mousemove',this.moveImage,false);
+      document.addEventListener('mouseup',this.upImage,false);
+      e.preventDefault();
+    }
+    moveImage(e){
+      this.iLeft+=e.clientX-this.iStartX;
+      this.iTop+=e.clientY-this.iStartY;
+      this.iStartX= e.clientX;
+      this.iStartY= e.clientY;
+      this.image.style.left= this.iLeft+'px';
+      this.image.style.top= this.iTop+'px';
+      e.preventDefault();
+    }
+    upImage(e){
+      this.el.removeEventListener('mousemove',this.moveImage,false);
+      document.removeEventListener('mouseup',this.upImage,false);
+      delete this.moveImage;
+      delete this.upImage;
+      e.preventDefault();
+    }
+    getData(e){
+      let composite = this.el.getBoundingClientRect();
+      this.scaleX = (e.clientX - composite.left) / composite.width;
+      this.scaleY = (e.clientY - composite.top) / composite.height;
+      if(!this.image.flag){
+        this.image.flag=true;
+        this.initWidth=this.image.offsetWidth;
+        this.initHeight=this.image.offsetHeight;
+        this.scale= this.initWidth / this.initHeight > 1;
+        if(this.scale){
+          this.initScaleX=1;
+          this.initScaleY= this.initWidth / this.initHeight;
+        }else{
+          this.initScaleX = this.initHeight / this.initWidth;
+          this.initScaleY = 1;
+        }
+      }
+
+    }
+    zoom(e){
+      let width=this.image.offsetWidth+(30* this.initScaleX);
+      let height=this.image.offsetHeight+(30 * this.initScaleY);
+      this.setStyle(width, height);
+    }
+    zommOut(e){
+      let width = this.image.offsetWidth-(30 * this.initScaleX);
+      let height = this.image.offsetHeight-(30 * this.initScaleY);
+      this.setStyle(width,height);
+    }
+    setStyle(width,height){
+      if(this.scale&&height<=0){
+        width=this.image.offsetWidth;
+        height=this.image.offsetHeight;
+      }else if(width<=0){
+        width=this.image.offsetWidth;
+        height=this.image.offsetHeight;
+      }
+      this.iLeft+=(this.image.offsetWidth-width)* this.scaleX;
+      this.iTop+=(this.image.offsetHeight-height)* this.scaleY;
+      this.image.style.cssText = `
+        width:${width}px;
+        height:${height}px;
+        left:${this.iLeft}px;
+        top:${this.iTop}px;
+      `
+    }
+  }
+  new iBoxDrag('.box');
+</script>
+<script>
+  Array.prototype.flat=function(index=1){
+    return flat(this);
+    function flat(data,l=0){
+      let arr=[];
+      for(let i=0;i<data.length;i++){
+        if(Array.isArray(data[i])&&l<index){
+          arr=arr.concat(flat(data[i],l+1));
+        }else{
+          arr.push(data[i]);
+        }
+      }
+      return arr;
+    };
+  };
+  Array.prototype.flatMap=function(callBack,This,index=1){
+    if(!(callBack instanceof Function)){
+      return new TypeError('请传回调函数!!!');
+    }
+    let arr=[];
+    for(let i=0;i<this.length;i++){
+      arr.push(callBack.call(This,this[i],i,this));
+    };
+    return flat(arr);
+    function flat(data,l=0){
+      let arr=[];
+      for(let i=0;i<data.length;i++){
+        if(Array.isArray(data[i])&&l<index){
+          arr=arr.concat(flat(data[i],l+1))
+        }else{
+          arr.push(data[i]);
+        }
+      }
+      return arr;
+    }
+  }
+  let arr=[1,2,3,[4,5,6,[7,8,9]]];
+  function getAjAx(a,b,c){
+    console.log(a,b,c);
+    var a=2;
+    var b=function(){1}
+    function c(){2}
+  };
+  getAjAx(1,[],function(){3});
+  // var y = 1;
+  //   function test() {
+  //     var y = 'g';
+  //     function fn() {
+  //       var y = 'l'
+
+  //       return new Function("return y") //1
+  //     }
+  //     console.log(fn()())
+  //     alert(fn()())
+  //   }
+  // test()
+  // function test(){
+  //   let arr=1;
+  //   (new Function('console.log(arr)'))()
+  // }
+  // let fn=new Function(`console.log(ceshi)`);
+  // fn.name='ceshi';
+  // fn();
+</script>
