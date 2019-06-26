@@ -69,3 +69,78 @@ Array.prototype.flatMap = function (callBack, This, index = 1) {
     return arr;
   }
 }
+Number.parseInt=function(str){
+  str=str.toString();
+ let num=str.match(/^\d+/);
+ return num?Number(num[0]):NaN;
+}
+Number.parseFloat=function(str){
+  str=str.toString();
+ let num=str.match(/^\d+(?:\.\d+)?/);
+ return num?Number(num[0]):NaN;
+}
+Number.parseInt=function(str){
+  let index=1;
+  let val;
+  str=str.toString();
+  while(str&&!isNaN(str.substr(0,index))){
+      val=str.substr(0,index);
+      if(val[val.length-1]=='.'){
+          val=val.substring(0,index-1);
+          break;
+      }else if(index==str.length){
+          break;
+      }
+      index++;
+  }
+  return val?Number(val):NaN;
+}
+Number.parseFloat=function(str){
+  let index=1;
+  let val;
+  str=str.toString();
+  while(str&&!isNaN(str.substr(0,index))){
+      val=str.substr(0,index);
+      if(index==str.length){
+          break;
+      }
+      index++;
+  }
+  if(val){
+      if(val[val.length-1]=='.') val=val.substring(0,val.length-1);
+      return Number(val);
+  }else{
+      return NaN;
+  }
+}
+Number.parseInt=function(str){
+  let num='';
+  str=str.toString();
+  for(let i=0;i<str.length;i++){
+      if(!isNaN(str[i])){
+          num+=str[i];
+      }else{
+          break;
+      }
+  }
+  return num?Number(num):NaN;
+}
+Number.parseFloat=function(str){
+  let num='';
+  let flag=true;
+  str=str.toString();
+  for(let i=0;i<str.length;i++){
+      if(!isNaN(str[i])||str[i]==='.'&&flag){
+          if(str[i]==='.') flag=false;
+          num+=str[i];
+      }else{
+          break;
+      }
+  }
+  if(num){
+      if(num[num.length-1]=='.') num=num.substring(0,num.length-1);
+      return Number(num);
+  }else{
+      return NaN;
+  }
+}
