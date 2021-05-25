@@ -83,11 +83,13 @@
                         try{
                             let value=toString.call(success)==='[object Function]'?success(e):e;
                             if(value instanceof Promise){           //返回的是Promise
-                                value.then(res=>{
-                                    resolve(res);
-                                },res=>{
-                                    reject(res)
-                                })
+                                new Promise((res,rej)=>{
+                                    value.then(value=>{
+                                        res(value);
+                                    },value=>{
+                                        rej(value);
+                                    })                                    
+                                }).then(resolve).catch(reject)
                             }else{
                                 resolve(value)
                             }
@@ -101,11 +103,13 @@
                             try{
                                 let value=error(e);
                                 if(value instanceof Promise){           //返回的是Promise
-                                    value.then(res=>{
-                                        resolve(res);
-                                    },res=>{
-                                        reject(res)
-                                    })
+                                    new Promise((res,rej)=>{
+                                        value.then(value=>{
+                                            res(value);
+                                        },value=>{
+                                            rej(value);
+                                        })                                    
+                                    }).then(resolve).catch(reject)
                                 }else{
                                     resolve(value)
                                 }
@@ -128,11 +132,13 @@
                         try{
                             let value=error(res);
                             if(value instanceof Promise){
-                                value.then(res=>{
-                                    resolve(res);
-                                },res=>{
-                                    reject(res);
-                                })
+                                new Promise((res,rej)=>{
+                                    value.then(value=>{
+                                        res(value);
+                                    },value=>{
+                                        rej(value);
+                                    })                                    
+                                }).then(resolve).catch(reject)
                             }else{
                                 resolve(value);
                             }
@@ -150,11 +156,13 @@
                     try{
                         let value=common();
                         if(value instanceof Promise){
-                            value.then(res=>{
-                                resolve()
-                            },res=>{
-                                reject(res)
-                            });
+                            new Promise((res,rej)=>{
+                                value.then(value=>{
+                                    res(value);
+                                },value=>{
+                                    rej(value);
+                                })                                    
+                            }).then(resolve).catch(reject)
                         }else{
                             resolve()
                         }
@@ -181,12 +189,12 @@
             }
             static resolve(e){
                 return new Promise(function(resolve,reject){
-                    setTimeout(resolve.bind(null,e),0);
+                    resolve(e)
                 })
             }
             static reject(e){
                 return new Promise(function(resolve,reject){
-                    setTimeout(reject.bind(null,e),0);
+                    reject(e)
                 })
             }
             static all(Arrays){
@@ -216,6 +224,8 @@
                     }
                 });
             }
+            static allSettled(){}
+            static any(){}
         };
         let Pro=new Promise(function(resolve,reject){
             resolve(1)
